@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Big Bang Simulator</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="canvas-container"></div>
+
+    <div id="overlay">
+        <div class="title">BIG BANG SIMULATOR</div>
+        <div class="subtitle">Click to Start</div>
+        <div class="features">
+            <span>8 Firework Types</span>
+            <span>Realistic Physics</span>
+            <span>3D Audio</span>
+        </div>
+        <div class="controls">
+            <span><kbd>Click</kbd> Launch at cursor</span>
+            <span><kbd>Space</kbd> Random launch</span>
+            <span><kbd>F</kbd> Finale mode</span>
+        </div>
+    </div>
+
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+            }
+        }
+    </script>
+    <script type="module" src="script.js"></script>
+</body>
+</html>
