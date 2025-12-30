@@ -3,25 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Big Bang Simulator</title>
+    <title>Big Bang Expansion - 13.77 Billion Years</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div id="canvas-container"></div>
 
-    <div id="overlay">
-        <div class="title">BIG BANG SIMULATOR</div>
-        <div class="subtitle">Click to Start</div>
-        <div class="features">
-            <span>8 Firework Types</span>
-            <span>Realistic Physics</span>
-            <span>3D Audio</span>
+    <div id="info-panel">
+        <h1>Big Bang Expansion</h1>
+        <p id="current-era">Drag to rotate | Scroll to zoom</p>
+        <div id="timeline">
+            <span class="era" data-era="singularity">Singularity</span>
+            <span class="era" data-era="inflation">Inflation</span>
+            <span class="era" data-era="cmb">CMB 375,000 yrs</span>
+            <span class="era" data-era="darkages">Dark Ages</span>
+            <span class="era" data-era="firststars">First Stars 400M yrs</span>
+            <span class="era" data-era="galaxies">Galaxies Form</span>
+            <span class="era" data-era="darkenergy">Dark Energy Era</span>
         </div>
-        <div class="controls">
-            <span><kbd>Click</kbd> Launch at cursor</span>
-            <span><kbd>Space</kbd> Random launch</span>
-            <span><kbd>F</kbd> Finale mode</span>
-        </div>
+    </div>
+
+    <div id="scale-info">
+        <span>13.77 billion years</span>
     </div>
 
     <script type="importmap">

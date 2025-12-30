@@ -1,44 +1,42 @@
-# Big Bang Simulator
+# Big Bang Expansion Visualization
 
-A realistic 3D fireworks simulation built with Three.js featuring multiple explosion patterns, realistic physics, and immersive audio.
+An interactive 3D visualization of the universe's expansion from the Big Bang to the present day, spanning 13.77 billion years. Built with Three.js featuring bloom effects, interactive camera controls, and cosmic era labels.
 
-![Big Bang Simulator](https://img.shields.io/badge/Three.js-000000?style=for-the-badge&logo=three.js&logoColor=white)
+![Three.js](https://img.shields.io/badge/Three.js-000000?style=for-the-badge&logo=three.js&logoColor=white)
 ![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)
 
 ## Features
 
-### 8 Firework Types
-- **Chrysanthemum** - Classic spherical burst with trailing sparks
-- **Peony** - Dense spherical explosion without trails
-- **Willow** - Weeping, long-lasting trails that cascade down
-- **Palm** - Upward-spreading pattern like a palm tree
-- **Ring** - Circular horizontal ring explosion
-- **Crossette** - Particles that split mid-air into secondary bursts
-- **Strobe** - Flashing on/off effect
-- **Glitter** - Sparkling, twinkling particles
+### 3D Universe Expansion Cone
+- Expanding trumpet/cone shape showing the universe's growth over time
+- Accelerated expansion near the end (dark energy effect)
+- Grid lines showing the fabric of spacetime
+- Full 360° rotation with mouse drag controls
 
-### Realistic Physics
-- Quadratic air drag for natural deceleration
-- Dynamic wind simulation that affects particles
-- Realistic gravity with configurable hover time
-- Smoke particle system at launch and explosion points
+### Cosmic Eras Visualized
+- **Singularity** - The initial Big Bang point with bright glow effect
+- **Inflation** - Rapid early expansion period
+- **CMB (Cosmic Microwave Background)** - The afterglow at 375,000 years with temperature fluctuation texture
+- **Dark Ages** - The period before first stars
+- **First Stars** - Formation of first stars around 400 million years
+- **Galaxy Formation** - Development of galaxies and planets
+- **Dark Energy Era** - Accelerated expansion we observe today
 
-### Immersive Audio
-- Distance-based sound delay (speed of sound simulation)
-- Different sounds per firework type
-- Deep bass explosions with layered audio
-- Crackle effects for certain types
-- Rocket whistle during ascent
+### Visual Effects
+- **Bloom/Glow Effects** - Galaxies and stars have realistic glowing appearance
+- **2000+ Galaxies** - Distributed throughout the cone with varying colors and sizes
+- **Background Starfield** - 5000 background stars for depth
+- **3D Labels** - Era labels that follow camera perspective
 
 ### Interactive Controls
-- **Click** anywhere to launch fireworks at that position
-- **Spacebar** for random launch
-- **F key** for finale mode (rapid multi-launch)
-- Full GUI controls for customization
+- **Click and Drag** - Rotate the visualization in 3D
+- **Scroll** - Zoom in and out
+- **Era Buttons** - Click to focus camera on specific cosmic eras
+- **Full Screen** - Fills entire browser window
 
 ## Live Demo
 
-Deploy to Vercel or open `src/index.html` in a local server.
+Deploy to Vercel or open `src/index.html` with a local server.
 
 ## Quick Start
 
@@ -51,31 +49,37 @@ cd Big-Bang-Sim
 npx serve src
 ```
 
-Or simply open `src/index.html` with a local development server.
+Or use any local development server:
 
-## Configuration
+```bash
+# Python
+python -m http.server 8000
 
-All settings are adjustable via the in-app GUI:
-
-| Category | Settings |
-|----------|----------|
-| Display | Particle count, size, bloom, trail opacity |
-| Physics | Explosion force, gravity, wind, hover time |
-| Launch | Auto-launch toggle, interval, finale mode |
-| Audio | Sound on/off, volume |
+# Then open http://localhost:8000/src/
+```
 
 ## Tech Stack
 
-- **Three.js** - 3D rendering engine
-- **Web Audio API** - Procedural sound synthesis
-- **ES Modules** - Modern JavaScript modules
+- **Three.js** - 3D rendering engine with WebGL
+- **OrbitControls** - Mouse-based camera navigation
+- **EffectComposer** - Post-processing pipeline
+- **UnrealBloomPass** - Bloom/glow effects for galaxies
+- **CSS2DRenderer** - 3D-positioned HTML labels
+- **Custom Shaders** - GLSL shaders for galaxy particles
 
 ## Browser Support
 
 Works in all modern browsers that support:
 - WebGL 2.0
-- Web Audio API
 - ES Modules
+
+## Controls
+
+| Action | Control |
+|--------|---------|
+| Rotate | Click + Drag |
+| Zoom | Mouse Scroll |
+| Focus Era | Click era buttons in top-left panel |
 
 ## License
 
@@ -83,4 +87,4 @@ MIT License - feel free to use and modify!
 
 ---
 
-*Click to start and enjoy the show!*
+*Drag to explore 13.77 billion years of cosmic history!*
