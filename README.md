@@ -1,6 +1,13 @@
 # Big Bang Expansion 3D
 ### A Volumetric Simulation of Cosmic Evolution
 
+![Screenshot 2025-12-30 at 1 25 31 PM](https://github.com/user-attachments/assets/d34aac9e-7940-42be-94b5-4587f2011345)
+
+https://github.com/user-attachments/assets/587326e5-2cba-4700-baa9-e916e4c32296
+
+# Big Bang Expansion 3D
+### A Volumetric Simulation of Cosmic Evolution
+
 **Live Demo:** [https://big-bang-sim-idii.vercel.app/](https://big-bang-sim-idii.vercel.app/)
 
 ## Overview
