@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-console.log("Big Bang Sim: Version 5.0 Loaded (Smithsonian Galaxies)");
+console.log("Big Bang Sim: Version 8.0 Loaded (HDR Nebulae + Bloom)");
 
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
@@ -13,13 +13,13 @@ const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x000000);
 
 const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
-camera.position.set(0, 15, 50);
+camera.position.set(0, 30, 100);
 
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.2;
+renderer.toneMappingExposure = 1.5; // Increased exposure for HDR effect
 document.getElementById('canvas-container').appendChild(renderer.domElement);
 
 // CSS2D Renderer for labels
@@ -35,8 +35,8 @@ const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 controls.dampingFactor = 0.05;
 controls.minDistance = 10;
-controls.maxDistance = 150;
-controls.target.set(0, 0, 0);
+controls.maxDistance = 300; // Increased max distance
+controls.target.set(0, -5, 0);
 
 // Post-processing with bloom
 const composer = new EffectComposer(renderer);
@@ -45,8 +45,8 @@ composer.addPass(renderPass);
 
 const bloomPass = new UnrealBloomPass(
     new THREE.Vector2(window.innerWidth, window.innerHeight),
-    1.5,  // bloom strength
-    0.4,  // radius
+    2.0,  // bloom strength (Increased)
+    0.5,  // radius (Increased)
     0.85  // threshold
 );
 composer.addPass(bloomPass);
@@ -60,13 +60,13 @@ const animatedGalaxies = [];
 
 // Era positions along the cone (0 = singularity, 1 = present)
 const ERAS = {
-    singularity: { start: 0, end: 0.02, color: 0xffffff },
-    inflation: { start: 0.02, end: 0.08, color: 0x88ccff },
-    cmb: { start: 0.08, end: 0.15, color: 0x44aaff },
-    darkAges: { start: 0.15, end: 0.35, color: 0x223366 },
-    firstStars: { start: 0.35, end: 0.5, color: 0x6688cc },
-    galaxies: { start: 0.5, end: 0.75, color: 0x8899dd },
-    darkEnergy: { start: 0.75, end: 1.0, color: 0xaabbff }
+    singularity: { start: 0, end: 0.02, color: 0x000000 },
+    inflation: { start: 0.02, end: 0.08, color: 0x000000 },
+    cmb: { start: 0.08, end: 0.15, color: 0x000000 },
+    darkAges: { start: 0.15, end: 0.35, color: 0x000000 },
+    firstStars: { start: 0.35, end: 0.5, color: 0x000000 },
+    galaxies: { start: 0.5, end: 0.75, color: 0x000000 },
+    darkEnergy: { start: 0.75, end: 1.0, color: 0x000000 }
 };
 
 // Calculate radius at time t (0 to 1) based on WMAP/Condom shape
@@ -529,6 +529,348 @@ function createDetailedGalaxy(position, scale) {
     return points;
 }
 
+// Generate a dense Elliptical Galaxy (Older stars, gold/yellow, spherical)
+function createEllipticalGalaxy(position, scale) {
+    const parameters = {
+        count: 1500,
+        radius: 3.5,
+        randomness: 0.5,
+        randomnessPower: 2.5,
+        insideColor: '#ffaa55', // Gold
+        outsideColor: '#cc5522' // Red/Orange fade
+    };
+
+    const geometry = new THREE.BufferGeometry();
+    const positions = new Float32Array(parameters.count * 3);
+    const colors = new Float32Array(parameters.count * 3);
+    const scales = new Float32Array(parameters.count * 1);
+
+    const colorInside = new THREE.Color(parameters.insideColor);
+    const colorOutside = new THREE.Color(parameters.outsideColor);
+
+    for (let i = 0; i < parameters.count; i++) {
+        const i3 = i * 3;
+
+        // Position: Spherical distribution using Gaussian-like clustering
+        const r = Math.pow(Math.random(), 2.0) * parameters.radius; // Dense core
+        const theta = Math.random() * Math.PI * 2;
+        const phi = Math.acos(2 * Math.random() - 1);
+
+        const x = r * Math.sin(phi) * Math.cos(theta);
+        const y = r * Math.sin(phi) * Math.sin(theta);
+        const z = r * Math.cos(phi);
+
+        // Elliptical stretch (make it look like an E3-E5 galaxy)
+        positions[i3] = x * 1.2;
+        positions[i3 + 1] = y * 0.8; // Flatten slightly
+        positions[i3 + 2] = z * 1.0;
+
+        // Color mixed by radius
+        const mixedColor = colorInside.clone();
+        mixedColor.lerp(colorOutside, r / parameters.radius);
+
+        colors[i3] = mixedColor.r;
+        colors[i3 + 1] = mixedColor.g;
+        colors[i3 + 2] = mixedColor.b;
+        
+        scales[i] = Math.random();
+    }
+
+    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+    geometry.setAttribute('aScale', new THREE.BufferAttribute(scales, 1));
+
+    // Reuse the generic galaxy material logic but could be custom
+    const material = new THREE.ShaderMaterial({
+        depthWrite: false,
+        blending: THREE.AdditiveBlending,
+        vertexColors: true,
+        transparent: true,
+        uniforms: {
+            uTime: { value: 0 },
+            uSize: { value: 40.0 * scale } 
+        },
+        vertexShader: `
+            uniform float uTime;
+            uniform float uSize;
+            attribute float aScale;
+            varying vec3 vColor;
+            void main() {
+                vColor = color;
+                vec4 modelPosition = modelMatrix * vec4(position, 1.0);
+                vec4 viewPosition = viewMatrix * modelPosition;
+                gl_Position = projectionMatrix * viewPosition;
+                gl_PointSize = uSize * aScale * (1.0 / -viewPosition.z);
+            }
+        `,
+        fragmentShader: `
+            varying vec3 vColor;
+            void main() {
+                float strength = distance(gl_PointCoord, vec2(0.5));
+                strength = 1.0 - strength;
+                strength = pow(strength, 3.0); // Softer glow for ellipticals
+                vec3 color = mix(vec3(0.0), vColor, strength);
+                gl_FragColor = vec4(color, 1.0);
+            }
+        `
+    });
+
+    const points = new THREE.Points(geometry, material);
+    points.position.copy(position);
+    
+    // Random rotation
+    points.rotation.x = Math.random() * Math.PI;
+    points.rotation.z = Math.random() * Math.PI;
+
+    scene.add(points);
+    
+    // Slower rotation for ellipticals
+    animatedGalaxies.push({
+        mesh: points,
+        speed: (Math.random() * 0.05 + 0.02) * (Math.random() < 0.5 ? 1 : -1)
+    });
+
+    return points;
+}
+
+// Generate an Irregular Galaxy (Chaotic, blue/white, clumpy)
+function createIrregularGalaxy(position, scale) {
+    const parameters = {
+        count: 1000,
+        radius: 3.0,
+        insideColor: '#88ccff', // White/Blue
+        outsideColor: '#ffffff'
+    };
+
+    const geometry = new THREE.BufferGeometry();
+    const positions = new Float32Array(parameters.count * 3);
+    const colors = new Float32Array(parameters.count * 3);
+    const scales = new Float32Array(parameters.count * 1);
+
+    const colorInside = new THREE.Color(parameters.insideColor);
+    const colorOutside = new THREE.Color(parameters.outsideColor);
+
+    // Create a few "clumps" of star formation
+    const clumpCenters = [];
+    const numClumps = 3 + Math.floor(Math.random() * 3);
+    for(let k=0; k<numClumps; k++) {
+        clumpCenters.push({
+            x: (Math.random() - 0.5) * parameters.radius,
+            y: (Math.random() - 0.5) * parameters.radius,
+            z: (Math.random() - 0.5) * parameters.radius
+        });
+    }
+
+    for (let i = 0; i < parameters.count; i++) {
+        const i3 = i * 3;
+
+        // Pick a random clump to belong to
+        const clump = clumpCenters[Math.floor(Math.random() * clumpCenters.length)];
+        
+        // Scatter around clump
+        const r = Math.random() * 1.5;
+        const theta = Math.random() * Math.PI * 2;
+        const phi = Math.random() * Math.PI;
+
+        positions[i3] = clump.x + r * Math.sin(phi) * Math.cos(theta);
+        positions[i3 + 1] = clump.y + r * Math.sin(phi) * Math.sin(theta);
+        positions[i3 + 2] = clump.z + r * Math.cos(phi);
+
+        // Distort heavily
+        positions[i3] *= 1.0 + (Math.random() - 0.5); 
+
+        // Color
+        colors[i3] = colorInside.r;
+        colors[i3 + 1] = colorInside.g;
+        colors[i3 + 2] = colorInside.b;
+        
+        scales[i] = Math.random() * 1.5; // Varied sizes
+    }
+
+    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+    geometry.setAttribute('aScale', new THREE.BufferAttribute(scales, 1));
+
+    const material = new THREE.ShaderMaterial({
+        depthWrite: false,
+        blending: THREE.AdditiveBlending,
+        vertexColors: true,
+        transparent: true,
+        uniforms: {
+            uTime: { value: 0 },
+            uSize: { value: 35.0 * scale } 
+        },
+        vertexShader: `
+            uniform float uTime;
+            uniform float uSize;
+            attribute float aScale;
+            varying vec3 vColor;
+            void main() {
+                vColor = color;
+                vec4 modelPosition = modelMatrix * vec4(position, 1.0);
+                vec4 viewPosition = viewMatrix * modelPosition;
+                gl_Position = projectionMatrix * viewPosition;
+                gl_PointSize = uSize * aScale * (1.0 / -viewPosition.z);
+            }
+        `,
+        fragmentShader: `
+            varying vec3 vColor;
+            void main() {
+                float strength = distance(gl_PointCoord, vec2(0.5));
+                strength = 1.0 - strength;
+                strength = pow(strength, 2.0); 
+                vec3 color = mix(vec3(0.0), vColor, strength);
+                gl_FragColor = vec4(color, 1.0);
+            }
+        `
+    });
+
+    const points = new THREE.Points(geometry, material);
+    points.position.copy(position);
+    
+    points.rotation.x = Math.random() * Math.PI;
+    points.rotation.y = Math.random() * Math.PI;
+
+    scene.add(points);
+    
+    animatedGalaxies.push({
+        mesh: points,
+        speed: (Math.random() * 0.1) // Slow tumble
+    });
+
+    return points;
+}
+
+// Generate colorful Galactic Nebulae (Clouds)
+function createNebulae() {
+    const nebulaCount = 15; // Number of distinct cloud clusters
+    const particleCountPerNebula = 40;
+    
+    // Create a soft cloud texture programmatically
+    const canvas = document.createElement('canvas');
+    canvas.width = 128;
+    canvas.height = 128;
+    const ctx = canvas.getContext('2d');
+    const grad = ctx.createRadialGradient(64, 64, 0, 64, 64, 64);
+    grad.addColorStop(0, 'rgba(255, 255, 255, 1)'); // Core
+    grad.addColorStop(0.4, 'rgba(255, 255, 255, 0.2)'); // Soft body
+    grad.addColorStop(1, 'rgba(0, 0, 0, 0)'); // Fade
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, 128, 128);
+    
+    const texture = new THREE.CanvasTexture(canvas);
+
+    const geometry = new THREE.BufferGeometry();
+    const positions = [];
+    const colors = [];
+    const sizes = [];
+    const opacities = [];
+
+    // Nebula palettes (HDR colors > 1.0 for bloom)
+    const palettes = [
+        [new THREE.Color(2.0, 0.2, 0.5), new THREE.Color(0.5, 0.1, 1.0)], // Pink/Purple
+        [new THREE.Color(0.1, 1.5, 2.0), new THREE.Color(0.0, 0.5, 1.0)], // Cyan/Blue
+        [new THREE.Color(1.5, 1.0, 0.1), new THREE.Color(1.0, 0.4, 0.0)], // Gold/Orange
+        [new THREE.Color(0.2, 2.0, 0.5), new THREE.Color(0.0, 1.0, 0.5)], // Green/Teal
+    ];
+
+    for (let n = 0; n < nebulaCount; n++) {
+        // Random position in the universe (mostly later eras)
+        const t = 0.4 + Math.random() * 0.55;
+        const centerT = t;
+        const centerX = centerT * UNIVERSE_LENGTH - UNIVERSE_LENGTH / 2;
+        const maxR = getUniverseRadius(t) * 0.7; // Stay well inside
+        
+        const theta = Math.random() * Math.PI * 2;
+        const r = Math.sqrt(Math.random()) * maxR;
+        
+        const centerY = Math.cos(theta) * r;
+        const centerZ = Math.sin(theta) * r;
+
+        // Choose a color palette
+        const palette = palettes[Math.floor(Math.random() * palettes.length)];
+        const colorA = palette[0];
+        const colorB = palette[1];
+
+        // Create particles for this nebula
+        for (let i = 0; i < particleCountPerNebula; i++) {
+            // Scatter around center
+            const spread = 2.0 + Math.random() * 2.0;
+            const px = centerX + (Math.random() - 0.5) * spread;
+            const py = centerY + (Math.random() - 0.5) * spread;
+            const pz = centerZ + (Math.random() - 0.5) * spread;
+
+            positions.push(px, py, pz);
+
+            // Mix colors
+            const mixRatio = Math.random();
+            const col = colorA.clone().lerp(colorB, mixRatio);
+            
+            // Randomize brightness for HDR effect
+            col.multiplyScalar(0.5 + Math.random() * 1.0);
+            
+            colors.push(col.r, col.g, col.b);
+
+            // Varied sizes
+            sizes.push(4.0 + Math.random() * 4.0);
+            
+            // Varied opacity (some dense, some whispy)
+            opacities.push(0.05 + Math.random() * 0.1);
+        }
+    }
+
+    geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+    geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+    geometry.setAttribute('size', new THREE.Float32BufferAttribute(sizes, 1));
+    geometry.setAttribute('opacity', new THREE.Float32BufferAttribute(opacities, 1));
+
+    const material = new THREE.ShaderMaterial({
+        uniforms: {
+            uTexture: { value: texture },
+            uTime: { value: 0 }
+        },
+        vertexShader: `
+            attribute float size;
+            attribute float opacity;
+            varying vec3 vColor;
+            varying float vOpacity;
+            void main() {
+                vColor = color;
+                vOpacity = opacity;
+                vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+                gl_PointSize = size * (300.0 / -mvPosition.z);
+                gl_Position = projectionMatrix * mvPosition;
+            }
+        `,
+        fragmentShader: `
+            uniform sampler2D uTexture;
+            varying vec3 vColor;
+            varying float vOpacity;
+            void main() {
+                vec4 texColor = texture2D(uTexture, gl_PointCoord);
+                if (texColor.a < 0.1) discard;
+                
+                // Multiply color by texture alpha for soft edges
+                gl_FragColor = vec4(vColor, vOpacity * texColor.a);
+            }
+        `,
+        transparent: true,
+        depthWrite: false,
+        blending: THREE.AdditiveBlending // Glow effect
+    });
+
+    const nebula = new THREE.Points(geometry, material);
+    scene.add(nebula);
+    
+    // Animate the nebula slowly
+    animatedGalaxies.push({
+        mesh: nebula,
+        speed: 0.05 // Slow drift
+    });
+
+    return nebula;
+}
+
 // Create galaxies as glowing points with bloom, clustered in filaments
 function createGalaxies() {
     const galaxies = [];
@@ -554,13 +896,6 @@ function createGalaxies() {
         // Position along the cone, more galaxies in later eras
         // Bias heavily towards later eras (0.5 -> 1.0)
         let t = Math.pow(Math.random(), 0.4) * 0.7 + 0.3; 
-        
-        // VISUAL CHANGE: Drastically reduce simple "dots" in the spiral galaxy eras (t > 0.5)
-        // This ensures the nice spirals aren't obscured by noise.
-        if (t > 0.5) {
-            if (Math.random() > 0.15) continue; // Skip 85% of dots in the spiral era
-        }
-
         const x = t * UNIVERSE_LENGTH - UNIVERSE_LENGTH / 2;
 
         // Radius at this position
@@ -574,6 +909,9 @@ function createGalaxies() {
         let theta = filament.angle + (t * filament.twist);
         
         // Add randomness (scatter) around the filament spine
+        // As time goes on (t increases), gravity pulls things tighter? 
+        // Actually, Dark Energy pulls them apart, so scatter might increase or voids get bigger.
+        // Let's make filaments tighter in middle, looser at end.
         let scatter = Math.random() * filament.spread * (1.0 + t);
         theta += (Math.random() - 0.5) * scatter;
 
@@ -654,36 +992,52 @@ function createGalaxies() {
     galaxies.push(points);
 
     // --- Spawn Hero Galaxies (Detailed Spirals) ---
-    // SLICE 1: Small Spiral Galaxies (Era: Galaxies Form, t=0.5 to 0.75)
-    const smallGalaxyCount = 60; 
-    for(let i=0; i<smallGalaxyCount; i++) {
-        const t = 0.5 + Math.random() * 0.25;
+    const heroCount = 25; // Number of detailed galaxies
+    for(let i=0; i<heroCount; i++) {
+        // Place them in the late era (0.6 to 0.95)
+        const t = 0.6 + Math.random() * 0.35;
         const x = t * UNIVERSE_LENGTH - UNIVERSE_LENGTH / 2;
-        const maxR = getUniverseRadius(t) * 0.85;
+        const maxR = getUniverseRadius(t) * 0.8; // Stay inside
         
         const theta = Math.random() * Math.PI * 2;
         const r = Math.sqrt(Math.random()) * maxR;
+        
         const pos = new THREE.Vector3(x, Math.cos(theta)*r, Math.sin(theta)*r);
         
-        // Smaller scale for early galaxies
-        const scale = 0.4 + Math.random() * 0.4; 
+        // Scale increases with time (expansion)
+        const scale = 0.8 + Math.random() * 1.2;
+        
         createDetailedGalaxy(pos, scale);
     }
 
-    // SLICE 2: Large Majestic Galaxies (Era: Dark Energy, t=0.75 to 1.0)
-    const largeGalaxyCount = 40;
-    for(let i=0; i<largeGalaxyCount; i++) {
-        const t = 0.75 + Math.random() * 0.25;
+    // --- Spawn Elliptical Galaxies (Old, Gold, Spherical) ---
+    const ellipticalCount = 15;
+    for(let i=0; i<ellipticalCount; i++) {
+        const t = 0.7 + Math.random() * 0.25; // Late era
         const x = t * UNIVERSE_LENGTH - UNIVERSE_LENGTH / 2;
-        const maxR = getUniverseRadius(t) * 0.85;
+        const maxR = getUniverseRadius(t) * 0.8;
         
         const theta = Math.random() * Math.PI * 2;
         const r = Math.sqrt(Math.random()) * maxR;
         const pos = new THREE.Vector3(x, Math.cos(theta)*r, Math.sin(theta)*r);
         
-        // Large scale for modern galaxies
-        const scale = 1.0 + Math.random() * 1.2;
-        createDetailedGalaxy(pos, scale);
+        const scale = 1.2 + Math.random() * 1.5; // Often larger
+        createEllipticalGalaxy(pos, scale);
+    }
+
+    // --- Spawn Irregular Galaxies (Young, Blue, Chaotic) ---
+    const irregularCount = 15;
+    for(let i=0; i<irregularCount; i++) {
+        const t = 0.65 + Math.random() * 0.3; 
+        const x = t * UNIVERSE_LENGTH - UNIVERSE_LENGTH / 2;
+        const maxR = getUniverseRadius(t) * 0.8;
+        
+        const theta = Math.random() * Math.PI * 2;
+        const r = Math.sqrt(Math.random()) * maxR;
+        const pos = new THREE.Vector3(x, Math.cos(theta)*r, Math.sin(theta)*r);
+        
+        const scale = 0.7 + Math.random() * 0.8; 
+        createIrregularGalaxy(pos, scale);
     }
 
     return galaxies;
@@ -880,6 +1234,27 @@ function createTimelineArrow() {
     const startGeometry = new THREE.BufferGeometry().setFromPoints(startPoints);
     const startBracket = new THREE.Line(startGeometry, material);
     scene.add(startBracket);
+
+    // Add "Universe age" label
+    const ageDiv = document.createElement('div');
+    ageDiv.className = 'timeline-label';
+    ageDiv.textContent = 'Universe age';
+    ageDiv.style.color = 'rgba(255, 255, 255, 0.5)';
+    ageDiv.style.fontSize = '10px';
+    const ageLabel = new CSS2DObject(ageDiv);
+    ageLabel.position.set(-UNIVERSE_LENGTH / 2 - 5, -MAX_RADIUS - 12, 0);
+    scene.add(ageLabel);
+
+    // Add "now" label under arrow
+    const nowDiv = document.createElement('div');
+    nowDiv.className = 'timeline-label';
+    nowDiv.textContent = 'now';
+    nowDiv.style.color = 'rgba(255, 255, 255, 0.8)';
+    nowDiv.style.fontSize = '12px';
+    nowDiv.style.fontWeight = 'bold';
+    const nowLabel = new CSS2DObject(nowDiv);
+    nowLabel.position.set(UNIVERSE_LENGTH / 2 + 5, -MAX_RADIUS - 12, 0);
+    scene.add(nowLabel);
 }
 
 // Initialize the visualization
@@ -888,6 +1263,7 @@ function init() {
     createSingularity();
     createCMB();
     createDarkAgesFog(); // Added Fog
+    createNebulae(); // Added Colorful Galactic Clouds
     createGalaxies();
     // createFirstStars(); // Removed to ensure no "background dots" confusion
     createLabels();

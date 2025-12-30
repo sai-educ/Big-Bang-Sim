@@ -7,7 +7,7 @@
 body {
     overflow: hidden;
     background: #000;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: 'Open Sans', sans-serif;
     color: #fff;
 }
 
@@ -44,10 +44,7 @@ body {
     font-weight: 300;
     letter-spacing: 2px;
     margin-bottom: 10px;
-    background: linear-gradient(90deg, #fff, #88ccff);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    color: #fff;
 }
 
 #info-panel p {
