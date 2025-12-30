@@ -1,90 +1,39 @@
-# Big Bang Expansion Visualization
+# Big Bang Expansion 3D
+### A Volumetric Simulation of Cosmic Evolution
 
-An interactive 3D visualization of the universe's expansion from the Big Bang to the present day, spanning 13.77 billion years. Built with Three.js featuring bloom effects, interactive camera controls, and cosmic era labels.
+**Live Demo:** [https://big-bang-sim-idii.vercel.app/](https://big-bang-sim-idii.vercel.app/)
 
-![Three.js](https://img.shields.io/badge/Three.js-000000?style=for-the-badge&logo=three.js&logoColor=white)
-![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)
+## Overview
 
-## Features
+This project is a high-fidelity, interactive 3D visualization of the evolution of the universe, from the initial Singularity to the present day (13.77 billion years). Built using **Three.js** and **GLSL** (OpenGL Shading Language), it simulates the volumetric expansion of space-time, the formation of the Cosmic Microwave Background (CMB), and the emergence of the Cosmic Web.
 
-### 3D Universe Expansion Cone
-- Expanding trumpet/cone shape showing the universe's growth over time
-- Accelerated expansion near the end (dark energy effect)
-- Grid lines showing the fabric of spacetime
-- Full 360° rotation with mouse drag controls
+The simulation renders the universe as a dynamic time-cone, geometrically accurately representing the phases of:
+1.  **Inflation:** The initial rapid expansion from a singularity.
+2.  **The Dark Ages:** A period of volumetric fog before the ignition of the first stars.
+3.  **Galactic Evolution:** The formation of the first spiral and elliptical structures.
+4.  **Dark Energy:** The accelerated expansion of the universe in the modern era, visualized by a flaring mesh and redshifted galaxy distributions.
 
-### Cosmic Eras Visualized
-- **Singularity** - The initial Big Bang point with bright glow effect
-- **Inflation** - Rapid early expansion period
-- **CMB (Cosmic Microwave Background)** - The afterglow at 375,000 years with temperature fluctuation texture
-- **Dark Ages** - The period before first stars
-- **First Stars** - Formation of first stars around 400 million years
-- **Galaxy Formation** - Development of galaxies and planets
-- **Dark Energy Era** - Accelerated expansion we observe today
+## Scientific Visualization Features
 
-### Visual Effects
-- **Bloom/Glow Effects** - Galaxies and stars have realistic glowing appearance
-- **2000+ Galaxies** - Distributed throughout the cone with varying colors and sizes
-- **Background Starfield** - 5000 background stars for depth
-- **3D Labels** - Era labels that follow camera perspective
+*   **Volumetric Rendering:** Custom shaders simulate the density of the Cosmic Microwave Background (CMB) using procedural Simplex noise to mimic WMAP/Planck data temperature fluctuations.
+*   **Particle Systems:** Tens of thousands of particles represent the "Cosmic Web," with distinct algorithms for clustering and filament formation.
+*   **Procedural Galaxy Generation:** The simulation does not use static sprites. Instead, it procedurally generates 3D volumetric galaxies (Spirals, Barred Spirals, Ellipticals, and Irregulars) with individual stellar distributions, dust lanes, and accretion disks.
+*   **Post-Processing:** A NASA-grade rendering pipeline includes HDR Tone Mapping and Unreal-style Bloom to simulate the blinding luminosity of the Big Bang and the soft glow of galactic cores.
 
-### Interactive Controls
-- **Click and Drag** - Rotate the visualization in 3D
-- **Scroll** - Zoom in and out
-- **Era Buttons** - Click to focus camera on specific cosmic eras
-- **Full Screen** - Fills entire browser window
+## Technical Stack
 
-## Live Demo
+*   **Engine:** Three.js (WebGL)
+*   **Shaders:** Custom GLSL Fragment & Vertex Shaders
+*   **Post-Processing:** EffectComposer (UnrealBloomPass, RenderPass)
+*   **Physics:** Custom JavaScript animation loop for expansion dynamics
 
-Deploy to Vercel or open `src/index.html` with a local server.
+## Usage
 
-## Quick Start
+This simulation is optimized for modern web browsers supporting WebGL 2.0.
+Simply visit the [Live Demo](https://big-bang-sim-idii.vercel.app/) to interact.
 
-```bash
-# Clone the repository
-git clone https://github.com/sai-educ/Big-Bang-Sim.git
-
-# Open in browser (requires a local server for ES modules)
-cd Big-Bang-Sim
-npx serve src
-```
-
-Or use any local development server:
-
-```bash
-# Python
-python -m http.server 8000
-
-# Then open http://localhost:8000/src/
-```
-
-## Tech Stack
-
-- **Three.js** - 3D rendering engine with WebGL
-- **OrbitControls** - Mouse-based camera navigation
-- **EffectComposer** - Post-processing pipeline
-- **UnrealBloomPass** - Bloom/glow effects for galaxies
-- **CSS2DRenderer** - 3D-positioned HTML labels
-- **Custom Shaders** - GLSL shaders for galaxy particles
-
-## Browser Support
-
-Works in all modern browsers that support:
-- WebGL 2.0
-- ES Modules
-
-## Controls
-
-| Action | Control |
-|--------|---------|
-| Rotate | Click + Drag |
-| Zoom | Mouse Scroll |
-| Focus Era | Click era buttons in top-left panel |
-
-## License
-
-MIT License - feel free to use and modify!
+*   **Drag:** Rotate the camera around the timeline.
+*   **Scroll:** Zoom in/out to inspect individual eras or galaxies.
 
 ---
-
-*Drag to explore 13.77 billion years of cosmic history!*
+*Developed for educational and scientific visualization purposes.*
