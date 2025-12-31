@@ -1,6 +1,13 @@
 # Big Bang Expansion 3D
 ### A Volumetric Simulation of Cosmic Evolution
 
+![Screenshot 2025-12-30 at 1 25 31 PM](https://github.com/user-attachments/assets/d34aac9e-7940-42be-94b5-4587f2011345)
+
+https://github.com/user-attachments/assets/587326e5-2cba-4700-baa9-e916e4c32296
+
+# Big Bang Expansion 3D
+### A Volumetric Simulation of Cosmic Evolution
+
 **Live Demo:** [https://big-bang-sim-idii.vercel.app/](https://big-bang-sim-idii.vercel.app/)
 
 ## Overview
@@ -34,16 +41,6 @@ Simply visit the [Live Demo](https://big-bang-sim-idii.vercel.app/) to interact.
 
 *   **Drag:** Rotate the camera around the timeline.
 *   **Scroll:** Zoom in/out to inspect individual eras or galaxies.
-
----
-
-## License
-
-This project is licensed under [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/).
-
-**Open Educational Resource (OER)** — Created in service of Open Science.
-
-You are free to share and adapt this material for non-commercial purposes with appropriate attribution.
 
 ---
 *Developed for educational and scientific visualization purposes.*
