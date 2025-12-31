@@ -36,4 +36,14 @@ Simply visit the [Live Demo](https://big-bang-sim-idii.vercel.app/) to interact.
 *   **Scroll:** Zoom in/out to inspect individual eras or galaxies.
 
 ---
+
+## License
+
+This project is licensed under [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/).
+
+**Open Educational Resource (OER)** — Created in service of Open Science.
+
+You are free to share and adapt this material for non-commercial purposes with appropriate attribution.
+
+---
 *Developed for educational and scientific visualization purposes.*
