@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-console.log("Big Bang Sim: Version 8.2 Loaded (Enhanced Galaxies)");
+console.log("Big Bang Sim: Version 9.0 Loaded (Ultra-Realistic Galaxy Clusters)");
 
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
@@ -43,9 +43,9 @@ composer.addPass(renderPass);
 
 const bloomPass = new UnrealBloomPass(
     new THREE.Vector2(window.innerWidth, window.innerHeight),
-    0.6,   // bloom strength - subtle glow
-    0.3,   // radius - tight bloom
-    0.92   // threshold - only brightest elements bloom
+    1.2,   // bloom strength - enhanced for realistic galaxy glow
+    0.6,   // radius - softer, more natural light spread
+    0.75   // threshold - more elements contribute to bloom
 );
 composer.addPass(bloomPass);
 
@@ -935,6 +935,279 @@ function createCocoonSpiralGalaxy(position, scale, options = {}) {
     return points;
 }
 
+// Micro galaxy palettes for distant clusters
+const MICRO_GALAXY_PALETTES = [
+    { inside: '#ffffff', outside: '#aaccff' },  // White/Blue
+    { inside: '#ffeecc', outside: '#8899bb' },  // Cream/Steel
+    { inside: '#ffeedd', outside: '#7788aa' },  // Warm white/Gray-blue
+    { inside: '#eeeeff', outside: '#6677aa' },  // Ice white/Indigo
+];
+
+// Create micro galaxy clusters - many small, individually visible galaxies
+function createMicroGalaxyCluster(centerPosition, clusterRadius, galaxyCount) {
+    const positions = [];
+    const colors = [];
+    const sizes = [];
+    const rotations = [];
+
+    for (let i = 0; i < galaxyCount; i++) {
+        // Distribute galaxies in a spherical cluster
+        const r = Math.pow(Math.random(), 0.6) * clusterRadius;
+        const theta = Math.random() * Math.PI * 2;
+        const phi = Math.acos(2 * Math.random() - 1);
+
+        const x = centerPosition.x + r * Math.sin(phi) * Math.cos(theta);
+        const y = centerPosition.y + r * Math.sin(phi) * Math.sin(theta);
+        const z = centerPosition.z + r * Math.cos(phi);
+
+        positions.push(x, y, z);
+
+        // Color variety - mostly white/blue with some gold
+        const palette = MICRO_GALAXY_PALETTES[Math.floor(Math.random() * MICRO_GALAXY_PALETTES.length)];
+        const colorInside = new THREE.Color(palette.inside);
+        const colorOutside = new THREE.Color(palette.outside);
+        const mixedColor = colorInside.clone().lerp(colorOutside, Math.random() * 0.5);
+
+        // Brightness variation
+        mixedColor.multiplyScalar(0.7 + Math.random() * 0.5);
+        colors.push(mixedColor.r, mixedColor.g, mixedColor.b);
+
+        // Small sizes for distant appearance
+        sizes.push(0.15 + Math.random() * 0.35);
+
+        // Store rotation for each galaxy particle
+        rotations.push(Math.random() * Math.PI * 2);
+    }
+
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+    geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+    geometry.setAttribute('size', new THREE.Float32BufferAttribute(sizes, 1));
+
+    const material = new THREE.ShaderMaterial({
+        uniforms: {
+            uTime: { value: 0 }
+        },
+        vertexShader: `
+            attribute float size;
+            varying vec3 vColor;
+            varying float vSize;
+            void main() {
+                vColor = color;
+                vSize = size;
+                vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+                gl_PointSize = size * (600.0 / -mvPosition.z);
+                gl_PointSize = max(gl_PointSize, 1.5); // Minimum size for visibility
+                gl_Position = projectionMatrix * mvPosition;
+            }
+        `,
+        fragmentShader: `
+            varying vec3 vColor;
+            varying float vSize;
+            void main() {
+                vec2 coord = gl_PointCoord - vec2(0.5);
+                float dist = length(coord);
+                if (dist > 0.5) discard;
+
+                // Bright core with soft halo - galaxy-like appearance
+                float core = 1.0 - smoothstep(0.0, 0.15, dist);
+                float halo = 1.0 - smoothstep(0.1, 0.5, dist);
+                float strength = core * 0.8 + halo * 0.4;
+                strength = pow(strength, 1.5);
+
+                gl_FragColor = vec4(vColor * strength, strength);
+            }
+        `,
+        transparent: true,
+        vertexColors: true,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false
+    });
+
+    const points = new THREE.Points(geometry, material);
+    scene.add(points);
+
+    animatedGalaxies.push({
+        mesh: points,
+        speed: 0.01 // Very slow drift
+    });
+
+    return points;
+}
+
+// Create individual tiny spiral galaxy (for close-up detail)
+function createTinySpiralGalaxy(position, scale) {
+    const palette = MICRO_GALAXY_PALETTES[Math.floor(Math.random() * MICRO_GALAXY_PALETTES.length)];
+    const particleCount = 180 + Math.floor(Math.random() * 120);
+    const radius = 0.4 + Math.random() * 0.3;
+    const branches = 2 + Math.floor(Math.random() * 2);
+    const spin = 0.8 + Math.random() * 0.6;
+
+    const positions = new Float32Array(particleCount * 3);
+    const colors = new Float32Array(particleCount * 3);
+    const scales = new Float32Array(particleCount);
+
+    const colorInside = new THREE.Color(palette.inside);
+    const colorOutside = new THREE.Color(palette.outside);
+
+    for (let i = 0; i < particleCount; i++) {
+        const i3 = i * 3;
+        const r = Math.pow(Math.random(), 0.8) * radius;
+        const branchAngle = (i % branches) / branches * Math.PI * 2;
+        const spinAngle = r * spin;
+        const scatter = (Math.random() - 0.5) * 0.15 * r;
+
+        positions[i3] = Math.cos(branchAngle + spinAngle + scatter) * r;
+        positions[i3 + 1] = (Math.random() - 0.5) * 0.05;
+        positions[i3 + 2] = Math.sin(branchAngle + spinAngle + scatter) * r;
+
+        const mixedColor = colorInside.clone().lerp(colorOutside, r / radius);
+        mixedColor.multiplyScalar(0.8 + Math.random() * 0.4);
+        colors[i3] = mixedColor.r;
+        colors[i3 + 1] = mixedColor.g;
+        colors[i3 + 2] = mixedColor.b;
+
+        scales[i] = 0.3 + Math.random() * 0.7;
+    }
+
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+    geometry.setAttribute('aScale', new THREE.BufferAttribute(scales, 1));
+
+    const material = new THREE.ShaderMaterial({
+        depthWrite: false,
+        blending: THREE.AdditiveBlending,
+        vertexColors: true,
+        transparent: true,
+        uniforms: {
+            uTime: { value: 0 },
+            uSize: { value: 12.0 * scale }
+        },
+        vertexShader: `
+            uniform float uSize;
+            attribute float aScale;
+            varying vec3 vColor;
+            void main() {
+                vColor = color;
+                vec4 modelPosition = modelMatrix * vec4(position, 1.0);
+                vec4 viewPosition = viewMatrix * modelPosition;
+                gl_Position = projectionMatrix * viewPosition;
+                gl_PointSize = uSize * aScale * (1.0 / -viewPosition.z);
+                gl_PointSize = max(gl_PointSize, 1.0);
+            }
+        `,
+        fragmentShader: `
+            varying vec3 vColor;
+            void main() {
+                float strength = distance(gl_PointCoord, vec2(0.5));
+                strength = 1.0 - strength;
+                strength = pow(strength, 4.0);
+                gl_FragColor = vec4(vColor * strength, strength);
+            }
+        `
+    });
+
+    const points = new THREE.Points(geometry, material);
+    points.position.copy(position);
+    points.rotation.x = (Math.random() - 0.5) * Math.PI;
+    points.rotation.z = (Math.random() - 0.5) * Math.PI;
+
+    scene.add(points);
+
+    animatedGalaxies.push({
+        mesh: points,
+        speed: (Math.random() * 0.15 + 0.05) * (Math.random() < 0.5 ? 1 : -1)
+    });
+
+    return points;
+}
+
+// Create distant background galaxy field (ultra-distant galaxies)
+function createDistantGalaxyField() {
+    const galaxyCount = 8000;
+    const positions = [];
+    const colors = [];
+    const sizes = [];
+
+    for (let i = 0; i < galaxyCount; i++) {
+        // Focus on the cone opening (t = 0.7 to 1.0)
+        const t = 0.65 + Math.pow(Math.random(), 0.5) * 0.35;
+        const x = t * UNIVERSE_LENGTH - UNIVERSE_LENGTH / 2;
+        const maxR = getUniverseRadius(t);
+
+        // Distribute across the full radius with some clustering
+        const theta = Math.random() * Math.PI * 2;
+        const rNorm = 0.1 + Math.pow(Math.random(), 0.7) * 0.9;
+        const r = rNorm * maxR;
+
+        const y = Math.cos(theta) * r;
+        const z = Math.sin(theta) * r;
+
+        positions.push(x, y, z);
+
+        // Color: mostly blue-white for distant galaxies
+        const colorChoice = Math.random();
+        let color;
+        if (colorChoice < 0.5) {
+            color = new THREE.Color(0.85, 0.9, 1.0); // Blue-white
+        } else if (colorChoice < 0.8) {
+            color = new THREE.Color(1.0, 0.95, 0.9); // Warm white
+        } else {
+            color = new THREE.Color(1.0, 0.85, 0.7); // Gold
+        }
+
+        color.multiplyScalar(0.5 + Math.random() * 0.5);
+        colors.push(color.r, color.g, color.b);
+
+        // Very small sizes for depth
+        sizes.push(0.08 + Math.random() * 0.2);
+    }
+
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+    geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+    geometry.setAttribute('size', new THREE.Float32BufferAttribute(sizes, 1));
+
+    const material = new THREE.ShaderMaterial({
+        uniforms: {},
+        vertexShader: `
+            attribute float size;
+            varying vec3 vColor;
+            void main() {
+                vColor = color;
+                vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+                gl_PointSize = size * (500.0 / -mvPosition.z);
+                gl_PointSize = max(gl_PointSize, 0.8);
+                gl_Position = projectionMatrix * mvPosition;
+            }
+        `,
+        fragmentShader: `
+            varying vec3 vColor;
+            void main() {
+                vec2 coord = gl_PointCoord - vec2(0.5);
+                float dist = length(coord);
+                if (dist > 0.5) discard;
+
+                // Soft glow
+                float strength = 1.0 - (dist * 2.0);
+                strength = pow(strength, 2.5);
+
+                gl_FragColor = vec4(vColor * strength, strength * 0.9);
+            }
+        `,
+        transparent: true,
+        vertexColors: true,
+        blending: THREE.AdditiveBlending,
+        depthWrite: false
+    });
+
+    const points = new THREE.Points(geometry, material);
+    scene.add(points);
+
+    return points;
+}
+
 // Generate colorful Galactic Nebulae (Clouds)
 function createNebulae() {
     const nebulaCount = 15; // Number of distinct cloud clusters
@@ -1068,7 +1341,7 @@ function createNebulae() {
 // Create galaxies as glowing points with bloom, clustered in filaments
 function createGalaxies() {
     const galaxies = [];
-    const galaxyCount = 5000; // Increased count
+    const galaxyCount = 12000; // Significantly increased for denser field
 
     // Create point geometry for galaxies
     const positions = [];
@@ -1185,8 +1458,11 @@ function createGalaxies() {
     scene.add(points);
     galaxies.push(points);
 
+    // --- Create distant background galaxy field first (renders behind everything) ---
+    createDistantGalaxyField();
+
     // --- Spawn Hero Galaxies (Detailed Spirals) - Progressive density towards present ---
-    const heroCount = 60;
+    const heroCount = 100; // Increased from 60
     for(let i=0; i<heroCount; i++) {
         // Use squared random to bias towards higher t values (more galaxies near present)
         const rawT = Math.random();
@@ -1208,7 +1484,7 @@ function createGalaxies() {
     }
 
     // --- Spawn Elliptical Galaxies - Progressive density ---
-    const ellipticalCount = 40;
+    const ellipticalCount = 70; // Increased from 40
     for(let i=0; i<ellipticalCount; i++) {
         // Bias towards later era
         const rawT = Math.random();
@@ -1226,7 +1502,7 @@ function createGalaxies() {
     }
 
     // --- Spawn Irregular Galaxies - Progressive density ---
-    const irregularCount = 45;
+    const irregularCount = 75; // Increased from 45
     for(let i=0; i<irregularCount; i++) {
         // Bias towards later era
         const rawT = Math.random();
@@ -1244,7 +1520,7 @@ function createGalaxies() {
     }
 
     // --- Dense Cocoon Spiral Clusters - Progressive density towards present ---
-    const cocoonClusterCount = 22;
+    const cocoonClusterCount = 40; // Increased from 22
     for (let i = 0; i < cocoonClusterCount; i++) {
         // Strong bias towards late era
         const rawT = Math.random();
@@ -1276,6 +1552,40 @@ function createGalaxies() {
                 armSpread: 0.12 + Math.random() * 0.1
             });
         }
+    }
+
+    // --- Micro Galaxy Clusters at cone opening (many small visible individual galaxies) ---
+    const microClusterCount = 25;
+    for (let i = 0; i < microClusterCount; i++) {
+        // Position in the late universe (t = 0.75 to 0.98)
+        const t = 0.75 + Math.random() * 0.23;
+        const x = t * UNIVERSE_LENGTH - UNIVERSE_LENGTH / 2;
+        const maxR = getUniverseRadius(t);
+
+        const theta = Math.random() * Math.PI * 2;
+        const r = (0.3 + Math.random() * 0.65) * maxR;
+
+        const centerPos = new THREE.Vector3(x, Math.cos(theta) * r, Math.sin(theta) * r);
+        const clusterRadius = 2.5 + Math.random() * 3.5;
+        const galaxiesInCluster = 40 + Math.floor(Math.random() * 60);
+
+        createMicroGalaxyCluster(centerPos, clusterRadius, galaxiesInCluster);
+    }
+
+    // --- Tiny spiral galaxies for ultra-realistic detail ---
+    const tinySpiralCount = 150;
+    for (let i = 0; i < tinySpiralCount; i++) {
+        // Focus on late universe
+        const t = 0.6 + Math.pow(Math.random(), 0.6) * 0.38;
+        const x = t * UNIVERSE_LENGTH - UNIVERSE_LENGTH / 2;
+        const maxR = getUniverseRadius(t) * 0.9;
+
+        const theta = Math.random() * Math.PI * 2;
+        const r = Math.sqrt(Math.random()) * maxR;
+        const pos = new THREE.Vector3(x, Math.cos(theta) * r, Math.sin(theta) * r);
+
+        const scale = 0.3 + Math.random() * 0.5;
+        createTinySpiralGalaxy(pos, scale);
     }
 
     return galaxies;
